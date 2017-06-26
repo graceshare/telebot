@@ -64,6 +64,11 @@ type Update struct {
 	// optional
 	Callback *Callback `json:"callback_query"`
 	Query    *Query    `json:"inline_query"`
+
+	// add by cyw
+	EditedMessage      *Message            `json:"edited_message"`
+	ChannelPost        *Message            `json:"channel_post"`
+	EditedChannelPost  *Message            `json:"edited_channel_post"`
 }
 
 // Thumbnail object represents an image/sticker of a particular size.

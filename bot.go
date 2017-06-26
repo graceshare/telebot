@@ -14,6 +14,7 @@ type Bot struct {
 	Identity  User
 	Messages  chan Message
 	Queries   chan Query
+	ChannelPosts   chan Message
 	Callbacks chan Callback
 }
 
@@ -34,19 +35,20 @@ func NewBot(token string) (*Bot, error) {
 // Listen periodically looks for updates and delivers new messages
 // to the subscription channel.
 func (b *Bot) Listen(subscription chan Message, timeout time.Duration) {
-	go b.poll(subscription, nil, nil, timeout)
+	go b.poll(subscription, nil, nil, b.ChannelPosts, timeout)
 }
 
 // Start periodically polls messages and/or updates to corresponding channels
 // from the bot object.
 func (b *Bot) Start(timeout time.Duration) {
-	b.poll(b.Messages, b.Queries, b.Callbacks, timeout)
+	b.poll(b.Messages, b.Queries, b.Callbacks, b.ChannelPosts, timeout)
 }
 
 func (b *Bot) poll(
 	messages chan Message,
 	queries chan Query,
 	callbacks chan Callback,
+	channelPosts chan Message,
 	timeout time.Duration,
 ) {
 	var latestUpdate int64
@@ -69,6 +71,8 @@ func (b *Bot) poll(
 				}
 
 				messages <- *update.Payload
+			} else if update.ChannelPost != nil {
+				channelPosts <- *update.ChannelPost
 			} else if update.Query != nil /* if query */ {
 				if queries == nil {
 					continue
