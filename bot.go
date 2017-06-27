@@ -126,6 +126,38 @@ func (b *Bot) SendMessage(recipient Recipient, message string, options *SendOpti
 	return nil
 }
 
+func (b *Bot) NewMessageToChannel(chanelName string, message string, options *SendOptions) error {
+	params := map[string]string{
+		"chat_id": chanelName,
+		"text":    message,
+	}
+
+	if options != nil {
+		embedSendOptions(params, options)
+	}
+
+	responseJSON, err := sendCommand("sendMessage", b.Token, params)
+	if err != nil {
+		return err
+	}
+
+	var responseRecieved struct {
+		Ok          bool
+		Description string
+	}
+
+	err = json.Unmarshal(responseJSON, &responseRecieved)
+	if err != nil {
+		return err
+	}
+
+	if !responseRecieved.Ok {
+		return fmt.Errorf("telebot: %s", responseRecieved.Description)
+	}
+
+	return nil
+}
+
 // ForwardMessage forwards a message to recipient.
 func (b *Bot) ForwardMessage(recipient Recipient, message Message) error {
 	params := map[string]string{
